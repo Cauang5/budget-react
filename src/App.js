@@ -1,3 +1,4 @@
+// src/App.js
 import "./App.css";
 import { Container } from "semantic-ui-react";
 import MainHeader from "./components/MainHeader";
@@ -7,9 +8,13 @@ import DisplayBalances from "./components/DisplayBalances";
 import { useState } from "react";
 import EntryLines from "./components/EntryLines";
 import ModalEdit from "./components/ModalEdit";
+import { useSelector, useDispatch } from 'react-redux';
+import { addEntry, removeEntry, updateEntry } from './store/entriesSlice';
 
 function App() {
-  const [entries, setEntries] = useState(initialEntries);
+  // Obter entradas do Redux
+  const entries = useSelector(state => state.entries);
+  const dispatch = useDispatch();
   
   // Estados para o formulário de adição
   const [description, setDescription] = useState("");
@@ -47,33 +52,15 @@ function App() {
   };
 
   function deleteEntry(id) {
-    const result = entries.filter((entry) => entry.id !== id);
-    setEntries(result);
+    dispatch(removeEntry({ id }));
   }
 
-  function updateEntry(id, description, value, isExpense) {
-    const result = entries.map((entry) => {
-      if (entry.id === id) {
-        return {
-          ...entry,
-          description,
-          value,
-          isExpense,
-        };
-      }
-      return entry;
-    });
-    setEntries(result);
+  function handleUpdateEntry(id, description, value, isExpense) {
+    dispatch(updateEntry({ id, description, value, isExpense }));
   }
 
-  function addEntry(description, value, isExpense) {
-    const result = entries.concat({
-      id: entries.length + 1,
-      description,
-      value,
-      isExpense,
-    });
-    setEntries(result);
+  function handleAddEntry(description, value, isExpense) {
+    dispatch(addEntry({ description, value, isExpense }));
     
     // Limpar o formulário após adicionar
     setDescription("");
@@ -111,7 +98,7 @@ function App() {
 
       <MainHeader title="Add new transaction" type="h3" />
       <NewEntryForm
-        addEntry={addEntry}
+        addEntry={handleAddEntry}
         description={description}
         setDescription={setDescription}
         value={value}
@@ -126,7 +113,7 @@ function App() {
         value={editValue}
         isExpense={editIsExpense}
         onSave={(description, value, isExpense) => 
-          updateEntry(entryId, description, value, isExpense)
+          handleUpdateEntry(entryId, description, value, isExpense)
         }
       />
     </Container>
@@ -134,10 +121,3 @@ function App() {
 }
 
 export default App;
-
-var initialEntries = [
-  { id: 1, description: "Salary", value: "4500", isExpense: false },
-  { id: 2, description: "Freelance", value: "1500", isExpense: false },
-  { id: 3, description: "Rent", value: "500", isExpense: true },
-  { id: 4, description: "Clothes", value: "150", isExpense: true },
-];
